@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='batchslopes',
-    version='0.0.1',
+    version='0.0.5',
     author='Ulf Liebal',
     author_email='ulf.liebal@rwth-aachen.de',
     description='batchslopes is a tool to identify the growth rate in growth profiler data. The data is partitioned into decreasing set sizes until the highest correlation coefficient of exponential growth is detected.',
