@@ -30,7 +30,7 @@ def MakeBins(x,partitions=2):
         
     '''
     mb = int(len(x)/partitions)
-    if mb > 3:
+    if mb > 0:
         mall = np.arange(0,len(x)+1,mb)
         bins = np.vstack([mall[:-1],mall[1:]]).T
     else:
