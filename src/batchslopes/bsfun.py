@@ -135,7 +135,6 @@ def DetectR2MaxSingle(t, x, partitions):
 ############################
 def CorrectedOD(GV,expo1,expo2):
     '''
-        
         myText
     '''
     od = (GV ** expo1) * (np.exp(expo2))
