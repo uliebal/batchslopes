@@ -130,3 +130,9 @@ def DetectR2MaxSingle(t, x, partitions):
             return myResult
     
     return myResult
+############################
+#
+############################
+def correctedod(GV,expo1,expo2):
+    od = (GV ** expo1) * (np.exp(expo2))
+    return od
