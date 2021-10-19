@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 ############################
 #
@@ -135,7 +136,26 @@ def DetectR2MaxSingle(t, x, partitions):
 ############################
 def CorrectedOD(GV,expo1,expo2):
     '''
-        myText
+        Correction of the OD
     '''
     od = (GV ** expo1) * (np.exp(expo2))
     return od
+############################
+#
+############################
+def statscalc(df, repnum):
+    '''
+        mean and standard deviation for replicates
+    '''
+    r = int((len(df.columns)-1)/repnum)
+    mean = pd.DataFrame()
+    stdev = pd.DataFrame()
+    for idxr in range(r):
+        idxr += 1
+        idxnew = idxr * repnum 
+        x = (df.iloc[:,(1+idxnew-repnum):(1+idxnew)].mean(1))
+        mean[str(idxr)] = x
+        x = (df.iloc[:,(1+idxnew-repnum):(1+idxnew)].std(1))
+        stdev[str(idxr)] = x
+    print(mean)
+    print(stdev)
