@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import os
 
 ############################
 #
@@ -59,7 +60,7 @@ def SlopeCalc(t, x, bins):
     if len(myRange) < 4:
 #         print('too few data points in partition.')
         return False
-    else:
+    else:            
         Time = np.vstack([t[myRange], np.ones(len(myRange))]).T
         m,c = np.linalg.lstsq(Time, np.log(x[myRange]), rcond=None)[0]
         r2 = np.corrcoef(t[myRange],np.log(x[myRange]))[0][1]
@@ -94,7 +95,7 @@ def DetectR2MaxSingle(t, x, partitions):
         bins = MakeBins(xtest,partitions)
         # Return False if too few data points remain for sensible binning (<4) 
         if np.sum(bins) == 0:
-            print('bins is false')
+#             print('bins is false')
             return False
         # if there are too many partitions in the beginning we reduce it further down into the loop
         if partitions > 3: 
@@ -128,8 +129,12 @@ def DetectR2MaxSingle(t, x, partitions):
             if R2_tst > R2_ref:
                 myResult = {'R2':R2_tst, 'Slope': Slope_tst, 'ycorrect':Ycorr, 'time':ttest, 'OD':xtest}
         else:
-            return myResult
-    
+            if 'myResult' in locals():
+                return myResult
+            else:
+                myResult = False
+                return myResult
+        
     return myResult
 ############################
 #
@@ -143,19 +148,95 @@ def CorrectedOD(GV,expo1,expo2):
 ############################
 #
 ############################
-def statscalc(df, repnum):
+def StatsCalc(df, repnum):
     '''
         mean and standard deviation for replicates
+        taken from df and repnum
     '''
-    r = int((len(df.columns)-1)/repnum)
+    r = int(len(df.columns)/repnum)
     mean = pd.DataFrame()
     stdev = pd.DataFrame()
     for idxr in range(r):
         idxr += 1
         idxnew = idxr * repnum 
-        x = (df.iloc[:,(1+idxnew-repnum):(1+idxnew)].mean(1))
-        mean[str(idxr)] = x
-        x = (df.iloc[:,(1+idxnew-repnum):(1+idxnew)].std(1))
-        stdev[str(idxr)] = x
-    print(mean)
-    print(stdev)
+        mean[str(idxr)] = (df.iloc[:,(idxnew-repnum):(idxnew)].mean(1))
+        stdev[str(idxr)] = (df.iloc[:,(idxnew-repnum):(idxnew)].std(1))
+    
+    return mean, stdev
+############################
+#
+############################
+def Batchfilenames(dirname):
+    '''
+    only relevant csv files!
+    '''
+    files = os.listdir(dirname)    
+    csv_files = list(filter(lambda f: f.endswith('.csv'), files))
+    myFiles = list()
+    for idx in range(len(csv_files)):
+        myFiles.append(os.path.join('data', csv_files[idx]))
+    return(myFiles)
+############################
+#
+############################
+def Fileparams(Source):
+    '''
+    if synthetic -> all parameter output (skiprows, etc)
+    else -> take all csv's
+    creating a dictionary
+    '''
+    if Source == 0:
+    # 0 means synthetic, 1 means real
+        myparams= {'skiprows': 0, 'decimal' : '.', 'TimeUnit' : 1}
+    else:
+        myparams= {'skiprows': 23, 'decimal' : ',', 'TimeUnit' : 60}
+    return(myparams)
+############################
+#
+############################
+def Foldertest(Name):
+    extension = os.path.splitext(Name)[1]
+    if extension == '':
+        return 1
+    else:
+        return 0
+############################
+#
+############################
+def createExcelFiles(tk, means, stdev, myCols, mu_list, r2_list, repnum, df, OD, myFiles):
+
+    MuMeans = []
+    MuStdev = []
+    R2Means = []
+    R2Stdev = []
+
+    myr2table = pd.DataFrame()
+    myr2table['Wells'] = myCols
+    myr2table['Mu Value'] = mu_list
+    myr2table['R2 Value'] = r2_list
+
+    myr2table2 = pd.DataFrame()
+    myr2table2['Means of Mu'] = list(np.mean(np.array(mu_list).reshape(-1, repnum), axis = 1))
+    myr2table2['StandardDeviation of Mu'] = list(np.std(np.array(mu_list).reshape(-1, repnum), axis = 1))
+    myr2table2['Means of R2'] = list(np.mean(np.array(r2_list).reshape(-1, repnum), axis = 1))
+    myr2table2['StandardDeviation of R2'] = list(np.std(np.array(r2_list).reshape(-1, repnum), axis = 1))
+    myr2table2.index = np.arange(1, len(myr2table2)+1)
+# df[['A1', 'A2','A3','A4', 'D5']].plot()
+
+# int((len(df.columns))/repnum)
+    if isinstance(myFiles, str):
+        with pd.ExcelWriter(myFiles[tk][5:]+'_results.xlsx') as writer:
+            df.to_excel(writer, sheet_name='1 raw data')
+            OD.to_excel(writer, sheet_name='2 correctedOD')
+            means.to_excel(writer, sheet_name='3 means')
+            stdev.to_excel(writer, sheet_name='4 stdev')
+            myr2table.to_excel(writer, sheet_name='5 newcsv')
+            myr2table2.to_excel(writer, sheet_name='6 means&stdev of newcsv')
+    else:
+        with pd.ExcelWriter(myFiles[tk][5:]+'_results.xlsx') as writer:
+#         df.to_excel(writer, sheet_name='1 raw data')
+            OD.to_excel(writer, sheet_name='2 correctedOD')
+            means.to_excel(writer, sheet_name='3 means')
+            stdev.to_excel(writer, sheet_name='4 stdev')
+            myr2table.to_excel(writer, sheet_name='5 newcsv')
+            myr2table2.to_excel(writer, sheet_name='6 means&stdev of newcsv')
