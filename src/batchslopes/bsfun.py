@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
+import datetime
 
 ############################
 #
@@ -205,17 +206,15 @@ def Foldertest(Name):
 ############################
 def createExcelFiles(tk, means, stdev, myCols, mu_list, r2_list, repnum, df, OD, myFiles):
 
-    MuMeans = []
-    MuStdev = []
-    R2Means = []
-    R2Stdev = []
-
+    today = datetime.date.today()
+    
     myr2table = pd.DataFrame()
     myr2table['Wells'] = myCols
     myr2table['Mu Value'] = mu_list
     myr2table['R2 Value'] = r2_list
 
     myr2table2 = pd.DataFrame()
+#     myr2table2['Wells'] = myCols
     myr2table2['Means of Mu'] = list(np.mean(np.array(mu_list).reshape(-1, repnum), axis = 1))
     myr2table2['StandardDeviation of Mu'] = list(np.std(np.array(mu_list).reshape(-1, repnum), axis = 1))
     myr2table2['Means of R2'] = list(np.mean(np.array(r2_list).reshape(-1, repnum), axis = 1))
@@ -225,18 +224,18 @@ def createExcelFiles(tk, means, stdev, myCols, mu_list, r2_list, repnum, df, OD,
 
 # int((len(df.columns))/repnum)
     if isinstance(myFiles, str):
-        with pd.ExcelWriter(myFiles[tk][5:]+'_results.xlsx') as writer:
+        with pd.ExcelWriter(today.strftime("%y%m%d")+'_'+myFiles[:-4]+'_results.xlsx') as writer:
             df.to_excel(writer, sheet_name='1 raw data')
             OD.to_excel(writer, sheet_name='2 correctedOD')
             means.to_excel(writer, sheet_name='3 means')
             stdev.to_excel(writer, sheet_name='4 stdev')
-            myr2table.to_excel(writer, sheet_name='5 newcsv')
-            myr2table2.to_excel(writer, sheet_name='6 means&stdev of newcsv')
+            myr2table.to_excel(writer, sheet_name='5 Growthrates', index = False)
+            myr2table2.to_excel(writer, sheet_name='6 means&stdev of Growthrates', index = False)
     else:
-        with pd.ExcelWriter(myFiles[tk][5:]+'_results.xlsx') as writer:
-#         df.to_excel(writer, sheet_name='1 raw data')
+        with pd.ExcelWriter(today.strftime("%y%m%d")+'_'+myFiles[tk][5:-4]+'_results.xlsx') as writer:
+            df.to_excel(writer, sheet_name='1 raw data')
             OD.to_excel(writer, sheet_name='2 correctedOD')
             means.to_excel(writer, sheet_name='3 means')
             stdev.to_excel(writer, sheet_name='4 stdev')
-            myr2table.to_excel(writer, sheet_name='5 newcsv')
-            myr2table2.to_excel(writer, sheet_name='6 means&stdev of newcsv')
+            myr2table.to_excel(writer, sheet_name='5 Growthrates', index = False)
+            myr2table2.to_excel(writer, sheet_name='6 means&stdev of Growthrates', index = False)
